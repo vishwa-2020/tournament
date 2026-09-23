@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { getMatch, getTeams, getCourts, updateMatch } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { AdminGuard } from '@/components/AdminGuard'
 import { Match, Team, Court } from '@/types'
 import { ArrowLeft, Save } from 'lucide-react'
 
@@ -92,8 +93,9 @@ export default function EditMatchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
+    <AdminGuard>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-8">
         <div className="flex items-center space-x-4 mb-6">
           <Button variant="outline" size="sm" onClick={() => router.push('/admin/matches')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -226,5 +228,6 @@ export default function EditMatchPage() {
         </Card>
       </div>
     </div>
+    </AdminGuard>
   )
 }

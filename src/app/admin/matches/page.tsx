@@ -5,6 +5,7 @@ import { getMatches, getTeams, getCourts } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { AdminGuard } from '@/components/AdminGuard'
 import { Match, Team, Court } from '@/types'
 import Link from 'next/link'
 import { Plus, Edit, Trash2, Play } from 'lucide-react'
@@ -54,8 +55,9 @@ export default function ManageMatchesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
+    <AdminGuard>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Manage Matches</h1>
           <Link href="/admin/matches/create">
@@ -125,5 +127,6 @@ export default function ManageMatchesPage() {
         </Card>
       </div>
     </div>
+    </AdminGuard>
   )
 }

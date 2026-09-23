@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Circle, Calendar, Trophy, Users, LayoutDashboard, Settings, Monitor, Map } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { isAdminAuthenticated } from '@/lib/auth'
 
 const navItems = [
   { href: '/', label: 'Live Now', icon: Circle },
@@ -18,6 +19,7 @@ const navItems = [
 
 export function Navigation() {
   const pathname = usePathname()
+  const isAdmin = isAdminAuthenticated()
 
   return (
     <nav className="border-b bg-white dark:bg-gray-900 sticky top-0 z-50">
@@ -29,7 +31,7 @@ export function Navigation() {
           </Link>
           
           <div className="flex items-center space-x-1">
-            {navItems.map((item) => {
+            {navItems.filter(item => !item.adminOnly || isAdmin).map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
               

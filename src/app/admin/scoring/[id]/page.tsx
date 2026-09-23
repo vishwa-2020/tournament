@@ -5,6 +5,7 @@ import { getMatch, addPoint, startMatch, startSet, endSet, endMatch } from '@/li
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { AdminGuard } from '@/components/AdminGuard'
 import { Match } from '@/types'
 import { notFound } from 'next/navigation'
 import { Plus, Minus, Play, Square, Flag } from 'lucide-react'
@@ -93,8 +94,9 @@ export default function AdminScoringPage({ params }: { params: { id: string } })
   const canEndMatch = match.teamASetsWon >= 3 || match.teamBSetsWon >= 3
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
+    <AdminGuard>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Live Scoring</h1>
 
         {/* Match Info */}
@@ -284,5 +286,6 @@ export default function AdminScoringPage({ params }: { params: { id: string } })
         </Card>
       </div>
     </div>
+    </AdminGuard>
   )
 }

@@ -5,6 +5,7 @@ import { getMatches, getTeams } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { AdminGuard } from '@/components/AdminGuard'
 import { Match, Team } from '@/types'
 import Link from 'next/link'
 import { Plus, Settings, Users, Calendar, Trophy } from 'lucide-react'
@@ -41,9 +42,20 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Admin Dashboard</h1>
+    <AdminGuard>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+            <Button variant="outline" onClick={() => {
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('adminAuth')
+                window.location.href = '/admin/login'
+              }
+            }}>
+              Logout
+            </Button>
+          </div>
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-4 mb-8">
@@ -182,5 +194,6 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+    </AdminGuard>
   )
 }
