@@ -1,4 +1,5 @@
-// Mock database for development (will be replaced with Firebase)
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 import { Tournament, Team, Match, Court, Standing, Player, Set, MatchEvent } from '@/types'
 
 // Mock data storage
@@ -14,6 +15,40 @@ let mockData: {
   matches: [],
   courts: [],
   standings: []
+}
+
+let loadingPromise: Promise<void> | null = null
+const tournamentDocument = doc(db, 'tournaments', 'main')
+
+async function saveData() {
+  await setDoc(tournamentDocument, JSON.parse(JSON.stringify(mockData)))
+}
+
+async function ensureDataLoaded() {
+  if (loadingPromise) return loadingPromise
+
+  loadingPromise = (async () => {
+    const snapshot = await getDoc(tournamentDocument)
+    if (snapshot.exists()) {
+      const remoteData = snapshot.data()
+      mockData = {
+        tournament: (remoteData.tournament as Tournament | null) || null,
+        teams: (remoteData.teams as Team[]) || [],
+        matches: (remoteData.matches as Match[]) || [],
+        courts: (remoteData.courts as Court[]) || [],
+        standings: (remoteData.standings as Standing[]) || []
+      }
+    } else {
+      initializeSampleData()
+      await saveData()
+    }
+  })()
+
+  try {
+    await loadingPromise
+  } finally {
+    loadingPromise = null
+  }
 }
 
 // Initialize with sample data
@@ -317,46 +352,57 @@ export function initializeSampleData() {
 
 // Database functions
 export async function getTournament(): Promise<Tournament | null> {
+  await ensureDataLoaded()
   return mockData.tournament
 }
 
 export async function getTeams(): Promise<Team[]> {
+  await ensureDataLoaded()
   return mockData.teams
 }
 
 export async function getTeam(id: string): Promise<Team | undefined> {
+  await ensureDataLoaded()
   return mockData.teams.find(t => t.id === id)
 }
 
 export async function getMatches(): Promise<Match[]> {
+  await ensureDataLoaded()
   return mockData.matches
 }
 
 export async function getMatch(id: string): Promise<Match | undefined> {
+  await ensureDataLoaded()
   return mockData.matches.find(m => m.id === id)
 }
 
 export async function getLiveMatches(): Promise<Match[]> {
+  await ensureDataLoaded()
   return mockData.matches.filter(m => m.status === 'live')
 }
 
 export async function getUpcomingMatches(): Promise<Match[]> {
+  await ensureDataLoaded()
   return mockData.matches.filter(m => m.status === 'upcoming')
 }
 
 export async function getCompletedMatches(): Promise<Match[]> {
+  await ensureDataLoaded()
   return mockData.matches.filter(m => m.status === 'completed')
 }
 
 export async function getCourts(): Promise<Court[]> {
+  await ensureDataLoaded()
   return mockData.courts
 }
 
 export async function getStandings(): Promise<Standing[]> {
+  await ensureDataLoaded()
   return mockData.standings
 }
 
 export async function updateMatchScore(matchId: string, teamAScore: number, teamBScore: number): Promise<void> {
+  await ensureDataLoaded()
   const match = mockData.matches.find(m => m.id === matchId)
   if (match) {
     match.teamAScore = teamAScore
@@ -367,10 +413,12 @@ export async function updateMatchScore(matchId: string, teamAScore: number, team
       type: 'point',
       description: `Score updated: ${teamAScore} - ${teamBScore}`
     })
+    await saveData()
   }
 }
 
 export async function addPoint(matchId: string, team: 'A' | 'B'): Promise<void> {
+  await ensureDataLoaded()
   const match = mockData.matches.find(m => m.id === matchId)
   if (match) {
     if (team === 'A') {
@@ -386,10 +434,12 @@ export async function addPoint(matchId: string, team: 'A' | 'B'): Promise<void> 
       description: `${team === 'A' ? match.teamA.name : match.teamB.name} scored`,
       team
     })
+    await saveData()
   }
 }
 
 export async function startSet(matchId: string, setNumber: number): Promise<void> {
+  await ensureDataLoaded()
   const match = mockData.matches.find(m => m.id === matchId)
   if (match) {
     match.currentSet = setNumber
@@ -408,10 +458,12 @@ export async function startSet(matchId: string, setNumber: number): Promise<void
       type: 'set_start',
       description: `Set ${setNumber} started`
     })
+    await saveData()
   }
 }
 
 export async function endSet(matchId: string, winner: 'A' | 'B'): Promise<void> {
+  await ensureDataLoaded()
   const match = mockData.matches.find(m => m.id === matchId)
   if (match && match.sets.length > 0) {
     const currentSet = match.sets[match.sets.length - 1]
@@ -433,10 +485,12 @@ export async function endSet(matchId: string, winner: 'A' | 'B'): Promise<void> 
       description: `Set ${match.currentSet} completed. Winner: ${winner === 'A' ? match.teamA.name : match.teamB.name}`,
       team: winner
     })
+    await saveData()
   }
 }
 
 export async function startMatch(matchId: string): Promise<void> {
+  await ensureDataLoaded()
   const match = mockData.matches.find(m => m.id === matchId)
   if (match) {
     match.status = 'live'
@@ -464,10 +518,12 @@ export async function startMatch(matchId: string): Promise<void> {
       court.currentMatchId = matchId
       court.status = 'live'
     }
+    await saveData()
   }
 }
 
 export async function endMatch(matchId: string, winnerId: string): Promise<void> {
+  await ensureDataLoaded()
   const match = mockData.matches.find(m => m.id === matchId)
   if (match) {
     match.status = 'completed'
@@ -514,6 +570,7 @@ export async function endMatch(matchId: string, winnerId: string): Promise<void>
     
     // Recalculate standings
     recalculateStandings()
+    await saveData()
   }
 }
 
@@ -544,6 +601,7 @@ export async function createMatch(data: {
   scheduledDate: string
   scheduledTime: string
 }): Promise<Match> {
+  await ensureDataLoaded()
   const teamA = mockData.teams.find(t => t.id === data.teamAId)
   const teamB = mockData.teams.find(t => t.id === data.teamBId)
   const court = mockData.courts.find(c => c.id === data.courtId)
@@ -573,6 +631,7 @@ export async function createMatch(data: {
   }
 
   mockData.matches.push(newMatch)
+  await saveData()
   return newMatch
 }
 
@@ -584,6 +643,7 @@ export async function updateMatch(matchId: string, data: {
   scheduledTime: string
   status: 'upcoming' | 'live' | 'completed'
 }): Promise<Match | null> {
+  await ensureDataLoaded()
   const matchIndex = mockData.matches.findIndex(m => m.id === matchId)
   if (matchIndex === -1) {
     return null
@@ -605,6 +665,7 @@ export async function updateMatch(matchId: string, data: {
   match.scheduledTime = data.scheduledTime
   match.status = data.status
 
+  await saveData()
   return match
 }
 
@@ -614,6 +675,7 @@ export async function updateTeam(teamId: string, data: {
   color: string
   captain: string
 }): Promise<Team | null> {
+  await ensureDataLoaded()
   const teamIndex = mockData.teams.findIndex(t => t.id === teamId)
   if (teamIndex === -1) {
     return null
@@ -625,6 +687,7 @@ export async function updateTeam(teamId: string, data: {
   team.color = data.color
   team.captain = data.captain
 
+  await saveData()
   return team
 }
 
@@ -634,6 +697,7 @@ export async function createTeam(data: {
   color: string
   captain: string
 }): Promise<Team> {
+  await ensureDataLoaded()
   const newTeam: Team = {
     id: `t${Date.now()}`,
     name: data.name,
@@ -655,6 +719,7 @@ export async function createTeam(data: {
   }
 
   mockData.teams.push(newTeam)
+  await saveData()
   return newTeam
 }
 
@@ -666,6 +731,7 @@ export async function updateTournament(data: {
   endDate: string
   format: 'league' | 'knockout' | 'round_robin' | 'group_knockout'
 }): Promise<Tournament | null> {
+  await ensureDataLoaded()
   if (!mockData.tournament) {
     return null
   }
@@ -678,10 +744,6 @@ export async function updateTournament(data: {
   mockData.tournament.format = data.format
   mockData.tournament.updatedAt = new Date().toISOString()
 
+  await saveData()
   return mockData.tournament
-}
-
-// Initialize data on first import
-if (mockData.teams.length === 0) {
-  initializeSampleData()
 }
