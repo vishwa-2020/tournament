@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { db, isFirebaseConfigured } from '@/lib/firebase'
 import { Tournament, Team, Match, Court, Standing, Player, Set, MatchEvent } from '@/types'
 
 // Mock data storage
@@ -28,19 +28,29 @@ async function ensureDataLoaded() {
   if (loadingPromise) return loadingPromise
 
   loadingPromise = (async () => {
-    const snapshot = await getDoc(tournamentDocument)
-    if (snapshot.exists()) {
-      const remoteData = snapshot.data()
-      mockData = {
-        tournament: (remoteData.tournament as Tournament | null) || null,
-        teams: (remoteData.teams as Team[]) || [],
-        matches: (remoteData.matches as Match[]) || [],
-        courts: (remoteData.courts as Court[]) || [],
-        standings: (remoteData.standings as Standing[]) || []
-      }
-    } else {
+    if (!isFirebaseConfigured) {
       initializeSampleData()
-      await saveData()
+      return
+    }
+
+    try {
+      const snapshot = await getDoc(tournamentDocument)
+      if (snapshot.exists()) {
+        const remoteData = snapshot.data()
+        mockData = {
+          tournament: (remoteData.tournament as Tournament | null) || null,
+          teams: (remoteData.teams as Team[]) || [],
+          matches: (remoteData.matches as Match[]) || [],
+          courts: (remoteData.courts as Court[]) || [],
+          standings: (remoteData.standings as Standing[]) || []
+        }
+      } else {
+        initializeSampleData()
+        await saveData()
+      }
+    } catch (error) {
+      console.error('Firebase data load failed; using sample data.', error)
+      initializeSampleData()
     }
   })()
 
