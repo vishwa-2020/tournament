@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getTeams } from '@/lib/db'
+import { deleteTeam, getTeams } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,18 @@ export default function ManageTeamsPage() {
     }
     loadData()
   }, [])
+
+  async function handleDelete(team: Team) {
+    if (!confirm(`Delete ${team.name}? This cannot be undone.`)) return
+
+    try {
+      await deleteTeam(team.id)
+      setTeams(currentTeams => currentTeams.filter(currentTeam => currentTeam.id !== team.id))
+    } catch (error) {
+      console.error('Error deleting team:', error)
+      alert(error instanceof Error ? error.message : 'Error deleting team')
+    }
+  }
 
   if (loading) {
     return (
@@ -89,7 +101,13 @@ export default function ManageTeamsPage() {
                           <Edit className="w-4 h-4" />
                         </Button>
                       </Link>
-                      <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleDelete(team)}
+                        aria-label={`Delete ${team.name}`}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

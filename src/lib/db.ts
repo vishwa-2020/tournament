@@ -734,6 +734,18 @@ export async function createTeam(data: {
   return newTeam
 }
 
+export async function deleteTeam(teamId: string): Promise<void> {
+  await ensureDataLoaded()
+  const teamIndex = mockData.teams.findIndex(team => team.id === teamId)
+  if (teamIndex === -1) {
+    throw new Error('Team not found')
+  }
+
+  mockData.teams.splice(teamIndex, 1)
+  recalculateStandings()
+  await saveData()
+}
+
 export async function updateTournament(data: {
   name: string
   logo: string
