@@ -30,38 +30,62 @@ export default function AdminScoringPage({ params }: { params: { id: string } })
   async function handleAddPoint(team: 'A' | 'B') {
     if (!match) return
     setUpdating(true)
-    await addPoint(match.id, team)
-    const updatedMatch = await getMatch(match.id)
-    setMatch(updatedMatch || null)
-    setUpdating(false)
+    try {
+      await addPoint(match.id, team)
+      const updatedMatch = await getMatch(match.id)
+      setMatch(updatedMatch || null)
+    } catch (error) {
+      console.error('Error updating score:', error)
+      alert(error instanceof Error ? error.message : 'Error updating score')
+    } finally {
+      setUpdating(false)
+    }
   }
 
   async function handleStartSet() {
     if (!match) return
     setUpdating(true)
-    const nextSet = match.currentSet + 1
-    await startSet(match.id, nextSet)
-    const updatedMatch = await getMatch(match.id)
-    setMatch(updatedMatch || null)
-    setUpdating(false)
+    try {
+      const nextSet = match.currentSet + 1
+      await startSet(match.id, nextSet)
+      const updatedMatch = await getMatch(match.id)
+      setMatch(updatedMatch || null)
+    } catch (error) {
+      console.error('Error starting set:', error)
+      alert(error instanceof Error ? error.message : 'Error starting set')
+    } finally {
+      setUpdating(false)
+    }
   }
 
   async function handleEndSet(winner: 'A' | 'B') {
     if (!match) return
     setUpdating(true)
-    await endSet(match.id, winner)
-    const updatedMatch = await getMatch(match.id)
-    setMatch(updatedMatch || null)
-    setUpdating(false)
+    try {
+      await endSet(match.id, winner)
+      const updatedMatch = await getMatch(match.id)
+      setMatch(updatedMatch || null)
+    } catch (error) {
+      console.error('Error ending set:', error)
+      alert(error instanceof Error ? error.message : 'Error ending set')
+    } finally {
+      setUpdating(false)
+    }
   }
 
   async function handleStartMatch() {
     if (!match) return
     setUpdating(true)
-    await startMatch(match.id)
-    const updatedMatch = await getMatch(match.id)
-    setMatch(updatedMatch || null)
-    setUpdating(false)
+    try {
+      await startMatch(match.id)
+      const updatedMatch = await getMatch(match.id)
+      setMatch(updatedMatch || null)
+    } catch (error) {
+      console.error('Error starting match:', error)
+      alert(error instanceof Error ? error.message : 'Error starting match')
+    } finally {
+      setUpdating(false)
+    }
   }
 
   async function handleEndMatch() {
@@ -69,10 +93,16 @@ export default function AdminScoringPage({ params }: { params: { id: string } })
     const winner = match.teamASetsWon > match.teamBSetsWon ? match.teamA.id : match.teamB.id
     if (confirm(`End match and declare ${winner === match.teamA.id ? match.teamA.name : match.teamB.name} as winner?`)) {
       setUpdating(true)
-      await endMatch(match.id, winner)
-      const updatedMatch = await getMatch(match.id)
-      setMatch(updatedMatch || null)
-      setUpdating(false)
+      try {
+        await endMatch(match.id, winner)
+        const updatedMatch = await getMatch(match.id)
+        setMatch(updatedMatch || null)
+      } catch (error) {
+        console.error('Error ending match:', error)
+        alert(error instanceof Error ? error.message : 'Error ending match')
+      } finally {
+        setUpdating(false)
+      }
     }
   }
 

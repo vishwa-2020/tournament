@@ -21,6 +21,7 @@ let loadingPromise: Promise<void> | null = null
 const tournamentDocument = doc(db, 'tournaments', 'main')
 
 async function saveData() {
+  if (!isFirebaseConfigured) return
   await setDoc(tournamentDocument, JSON.parse(JSON.stringify(mockData)))
 }
 
